@@ -1,0 +1,61 @@
+name: build
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build-deb:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Tauri system deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential curl wget file \
+            libssl-dev \
+            libgtk-3-dev \
+            libwebkit2gtk-4.1-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev
+
+      - name: Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+
+      - name: Install Tauri CLI
+        run: cargo install tauri-cli --version "^2" --locked
+
+      - name: Build deb
+        working-directory: src-tauri
+        run: cargo tauri build
+
+      - name: Upload deb artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: agentrouter-desktop-deb
+          path: src-tauri/target/release/bundle/deb/*.deb
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build-deb
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download deb
+        uses: actions/download-artifact@v4
+        with:
+          name: agentrouter-desktop-deb
+          path: dist-deb
+      - name: GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist-deb/*.deb

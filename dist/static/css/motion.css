@@ -1,0 +1,21 @@
+:root{
+--dur-1:120ms;--dur-2:200ms;--dur-3:320ms;
+--ease-out:cubic-bezier(.2,.8,.2,1);
+--ease-spring:cubic-bezier(.3,1.15,.4,1);
+}
+.collapse{display:grid;grid-template-rows:0fr;transition:grid-template-rows var(--dur-2) var(--ease-out)}
+.collapse.open{grid-template-rows:1fr}
+.collapse>.collapse-inner{overflow:hidden;min-height:0}
+.reveal{opacity:0;transform:translateY(6px)}
+.reveal.in{opacity:1;transform:none;transition:opacity var(--dur-2) var(--ease-out),transform var(--dur-2) var(--ease-spring)}
+.shake{animation:ar-shake var(--dur-2) var(--ease-out)}
+@keyframes ar-shake{25%{transform:translateX(-4px)}50%{transform:translateX(4px)}75%{transform:translateX(-2px)}}
+.odo{font-variant-numeric:tabular-nums}
+@media (prefers-reduced-motion:reduce){
+*,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}
+.reveal{opacity:1;transform:none}
+}
+html[data-motion="reduced"] .reveal{opacity:1;transform:none}
+html[data-motion="reduced"] .reveal.in{transition:opacity 100ms}
+html[data-motion="off"] *,html[data-motion="off"] *::before,html[data-motion="off"] *::after{animation:none !important;transition:none !important}
+html[data-motion="off"] .reveal{opacity:1;transform:none}
